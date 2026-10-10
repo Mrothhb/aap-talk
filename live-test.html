@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>A&amp;AP live test</title>
+<style>
+body{font:16px/1.4 -apple-system,"Segoe UI",Arial,sans-serif;background:#eef2f6;color:#1c2430;margin:0;padding:16px}
+h1{font-size:20px;margin:0 0 12px;color:#0d2a46}.row{background:#fff;border:1px solid #c9d2dc;border-radius:10px;padding:12px;margin:0 0 10px;display:flex;gap:12px;align-items:center}
+.k{font-weight:700;min-width:150px}.ok{color:#12803a;font-weight:700}.bad{color:#c81e1e;font-weight:700}
+button{font:inherit;font-weight:700;padding:8px 14px;border-radius:8px;border:2px solid #0d2a46;background:#0d2a46;color:#fff;cursor:pointer}
+</style></head><body>
+<h1>A&amp;AP live test</h1>
+<div class="row"><span class="k">From our desk</span><span id="desk">loading...</span></div>
+<div class="row"><span class="k">Last checked</span><span id="when">-</span> <button id="again" type="button">Check again</button></div>
+<div class="row"><span class="k">Files next to me</span><span id="near">checking...</span></div>
+<p>The desk changes the "From our desk" line while you watch. It checks every 15 seconds on its own.</p>
+<script>
+(function(){
+  var url="https://mrothhb.github.io/aap-talk/live-test.json";
+  function load(){
+    fetch(url+"?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.json();}).then(function(d){
+      document.getElementById("desk").innerHTML='<span class="ok">Version '+d.version+'</span> · '+d.order+' · '+d.client+' · due '+d.due+' · '+d.note;
+    }).catch(function(e){document.getElementById("desk").innerHTML='<span class="bad">Could not reach the desk: '+e+'</span>';});
+    document.getElementById("when").textContent=new Date().toLocaleTimeString();
+  }
+  document.getElementById("again").addEventListener("click",load);
+  load(); setInterval(load,15000);
+  var near=["Appraisal%20Requet.pdf","Engagement%20Letter.pdf","Executed%20Contract.pdf"],seen=[],tries=0;
+  near.forEach(function(n){
+    fetch(n).then(function(r){ if(r.ok) seen.push(decodeURIComponent(n)); }).catch(function(){}).then(function(){
+      tries++; if(tries===near.length){
+        document.getElementById("near").innerHTML = seen.length ? '<span class="ok">Yes: '+seen.join(", ")+'</span>' : '<span class="bad">No (blocked or not here)</span>';
+      }});
+  });
+})();
+</script></body></html>
